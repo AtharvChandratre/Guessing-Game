@@ -109,8 +109,8 @@ describe("the registry", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("ships the nineteen lists the setup screen expects", () => {
-    expect(LISTS.length).toBe(19);
+  it("ships the twenty-three lists the setup screen expects", () => {
+    expect(LISTS.length).toBe(23);
     expect(LISTS.every((list) => list.items.length >= 50)).toBe(true);
   });
 });

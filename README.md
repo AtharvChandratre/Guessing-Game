@@ -52,7 +52,7 @@ npm run test:watch
 
 The suite covers the matcher, since being told a correct guess is wrong is the
 one failure that ruins a game. It runs over the real shipped lists rather than
-fixtures - 300 tests, most of them sweeping all 1903 entries.
+fixtures - 345 tests, most of them sweeping all 2303 entries.
 
 | File | What it holds the line on |
 | --- | --- |
@@ -66,7 +66,7 @@ fixtures - 300 tests, most of them sweeping all 1903 entries.
 
 Two of those need explaining.
 
-**Recall floors.** `real-guesses.test.ts` perturbs all 1903 names with a fixed
+**Recall floors.** `real-guesses.test.ts` perturbs all 2303 names with a fixed
 seed and asserts a floor on how many still resolve - 90% for a wrong letter,
 84% for a missing one, 57% for a transposition. They sit just under today's
 rates, so a change that quietly makes matching stricter fails the build.
@@ -85,8 +85,8 @@ variables, so it deploys as-is: import the repo on Vercel and accept the detecte
 
 ## The lists
 
-Nineteen, across film, television, music, internet, apps, games, business, geography,
-architecture and sport. On the setup screen they are grouped into five colour-coded sections - Screen, Music &
+Twenty-three, across film, television, music, internet, apps, games, sport, business,
+geography and architecture. On the setup screen they are grouped into five colour-coded sections - Screen, Music &
 Internet, Games & Sport, World, Business - defined in `src/data/sections.ts`, each occupying a
 single row with its label in a left gutter. All of them fit on one screen at 1440x900. Lists that
 are the same subject at different depths (IMDb's Top 100 and Top 250) share one card with a size
@@ -101,6 +101,7 @@ date it came from, shown on the setup screen:
 | IMDb Top 100 / Top 250 Movies | 100 / 250 | [IMDb Top 250](https://www.imdb.com/chart/top/) |
 | IMDb Top 100 / Top 250 TV Shows | 100 / 250 | [IMDb Top 250 TV](https://www.imdb.com/chart/toptv/) |
 | Highest-Grossing Films | 50 | Wikipedia |
+| Highest-Grossing Media Franchises | 100 | Wikipedia |
 | Most-Streamed Songs on Spotify | 100 | Wikipedia |
 | Most-Subscribed YouTube Channels | 100 | Wikipedia |
 | Most-Followed Instagram Accounts | 50 | Wikipedia |
@@ -108,6 +109,7 @@ date it came from, shown on the setup screen:
 | Most-Downloaded Android Apps | 100 | Wikipedia |
 | Best-Selling Video Games | 50 | Wikipedia |
 | Top 100 Companies by Market Cap | 100 | [CompaniesMarketCap](https://companiesmarketcap.com/) |
+| Most Valuable Brands | 100 | Wikipedia (Brand Finance figures) |
 | 100 Most Populous Countries | 100 | Wikipedia |
 | Largest Cities in the World | 84 | Wikipedia |
 | US States by Population | 50 | Wikipedia |
@@ -115,6 +117,8 @@ date it came from, shown on the setup screen:
 | Largest Economies by GDP | 100 | Wikipedia |
 | Tallest Buildings in the World | 87 | Wikipedia |
 | All-Time Football Goalscorers | 82 | Wikipedia (RSSSF list) |
+| Formula One Race Winners | 100 | Wikipedia |
+| All-Time Olympic Medal Table | 100 | Wikipedia |
 
 Most of these rankings move over time - box-office totals, stream counts, follower counts, market
 caps and IMDb's ratings all change - so each affected list carries a `caveat` shown at setup. The

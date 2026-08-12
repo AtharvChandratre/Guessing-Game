@@ -151,6 +151,73 @@ describe("games", () => {
   });
 });
 
+describe("media franchises", () => {
+  it("accepts the franchise by the name on the merchandise", () => {
+    expectRank("highest-grossing-franchises", "Pokemon", 1);
+    expectRank("highest-grossing-franchises", "Star Wars", 4);
+    expectRank("highest-grossing-franchises", "Barbie", 7);
+    expectRank("highest-grossing-franchises", "Hello Kitty", 10);
+    expectRank("highest-grossing-franchises", "Transformers", 14);
+  });
+
+  it("accepts the popular name of a franchise Wikipedia lists formally", () => {
+    expectRank("highest-grossing-franchises", "Harry Potter", 9);
+    expectRank("highest-grossing-franchises", "Mickey Mouse", 2);
+    expectRank("highest-grossing-franchises", "Winnie the Pooh", 3);
+    expectRank("highest-grossing-franchises", "Lord of the Rings", 47);
+  });
+
+  it("accepts a parenthesised acronym, which is too short to match as a fragment", () => {
+    expectRank("highest-grossing-franchises", "MCU", 8);
+    expectRank("highest-grossing-franchises", "Marvel Cinematic Universe", 8);
+  });
+});
+
+describe("brands", () => {
+  it("accepts the brand without its corporate suffix", () => {
+    expectRank("most-valuable-brands", "Google", 1);
+    expectRank("most-valuable-brands", "Apple", 2);
+    expectRank("most-valuable-brands", "Amazon", 4);
+    expectRank("most-valuable-brands", "McDonalds", 10);
+    expectRank("most-valuable-brands", "Coca Cola", 20);
+  });
+});
+
+describe("formula one", () => {
+  it("accepts a driver by surname alone", () => {
+    expectRank("f1-race-winners", "Hamilton", 1);
+    expectRank("f1-race-winners", "Verstappen", 3);
+    expectRank("f1-race-winners", "Senna", 6);
+    expectRank("f1-race-winners", "Prost", 5);
+  });
+
+  it("accepts an accented name typed in plain ASCII", () => {
+    expectRank("f1-race-winners", "Kimi Raikkonen", 16);
+    expectRank("f1-race-winners", "Raikkonen", 16);
+  });
+
+  it("flags a surname two drivers share", () => {
+    expectAmbiguous("f1-race-winners", "Schumacher", 2);
+    expectRank("f1-race-winners", "Michael Schumacher", 2);
+  });
+});
+
+describe("olympic medals", () => {
+  it("accepts nations by the name people say", () => {
+    expectRank("olympic-medal-table", "United States", 1);
+    expectRank("olympic-medal-table", "USA", 1);
+    expectRank("olympic-medal-table", "Britain", 5);
+    expectRank("olympic-medal-table", "USSR", 2);
+  });
+
+  it("keeps the historical teams distinct from the modern ones", () => {
+    expectRank("olympic-medal-table", "Soviet Union", 2);
+    expectRank("olympic-medal-table", "Russia", 12);
+    expectRank("olympic-medal-table", "East Germany", 11);
+    expectRank("olympic-medal-table", "Germany", 4);
+  });
+});
+
 describe("websites", () => {
   it("accepts the site by the name people call it", () => {
     expectRank("most-visited-websites", "YouTube", 2);

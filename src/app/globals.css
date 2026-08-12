@@ -241,7 +241,7 @@ h2 {
 }
 
 .band + .band {
-  margin-top: 10px;
+  margin-top: 7px;
 }
 
 .band-head {
@@ -419,11 +419,20 @@ h2 {
  * Fixed height so hovering between cards with and without a caveat does not
  * shift the layout under the cursor.
  */
+/*
+ * Fixed height, not just a floor. The strip has to be tall enough that hovering
+ * between cards does not shuffle the grid under the cursor, and short enough
+ * that the picker still ends above the fold. Letting it grow to fit a long
+ * caveat breaks the second promise, so an over-long one scrolls in place and
+ * the layout stays put no matter what a future list has to say for itself.
+ */
 .preview {
-  margin-top: 16px;
+  margin-top: 10px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
-  min-height: 92px;
+  height: 92px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .preview-head {

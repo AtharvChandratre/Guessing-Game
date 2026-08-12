@@ -18,6 +18,10 @@ import { countriesByGdp } from "./countries-gdp";
 import { tallestBuildings } from "./tallest-buildings";
 import { footballGoalscorers } from "./football-goalscorers";
 import { largestCompanies } from "./companies-market-cap";
+import { highestGrossingFranchises } from "./highest-grossing-franchises";
+import { mostValuableBrands } from "./most-valuable-brands";
+import { f1RaceWinners } from "./f1-race-winners";
+import { olympicMedalTable } from "./olympic-medal-table";
 
 /**
  * Every playable list. To add a sub-game, drop a new file next to this one that
@@ -32,6 +36,7 @@ export const LISTS: GameList[] = [
   imdbTvTop100,
   imdbTvTop250,
   highestGrossingFilms,
+  highestGrossingFranchises,
   spotifySongs,
   youtubeChannels,
   instagramAccounts,
@@ -39,6 +44,7 @@ export const LISTS: GameList[] = [
   androidApps,
   bestSellingGames,
   largestCompanies,
+  mostValuableBrands,
   countriesByPopulation,
   largestCities,
   usStates,
@@ -46,6 +52,8 @@ export const LISTS: GameList[] = [
   countriesByGdp,
   tallestBuildings,
   footballGoalscorers,
+  f1RaceWinners,
+  olympicMedalTable,
 ];
 
 export function getList(id: string): GameList {
