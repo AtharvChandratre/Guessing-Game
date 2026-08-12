@@ -7,6 +7,8 @@ import { highestGrossingFilms } from "./highest-grossing-films";
 import { spotifySongs } from "./spotify-most-streamed";
 import { youtubeChannels } from "./youtube-most-subscribed";
 import { instagramAccounts } from "./instagram-most-followed";
+import { androidApps } from "./android-most-downloaded";
+import { mostVisitedWebsites } from "./most-visited-websites";
 import { bestSellingGames } from "./best-selling-video-games";
 import { countriesByPopulation } from "./countries-population";
 import { usStates } from "./us-states-population";
@@ -33,6 +35,8 @@ export const LISTS: GameList[] = [
   spotifySongs,
   youtubeChannels,
   instagramAccounts,
+  mostVisitedWebsites,
+  androidApps,
   bestSellingGames,
   largestCompanies,
   countriesByPopulation,

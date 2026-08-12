@@ -151,6 +151,83 @@ describe("games", () => {
   });
 });
 
+describe("websites", () => {
+  it("accepts the site by the name people call it", () => {
+    expectRank("most-visited-websites", "YouTube", 2);
+    expectRank("most-visited-websites", "Facebook", 3);
+    expectRank("most-visited-websites", "ChatGPT", 5);
+    expectRank("most-visited-websites", "Reddit", 7);
+    expectRank("most-visited-websites", "Wikipedia", 11);
+    expectRank("most-visited-websites", "Netflix", 20);
+  });
+
+  it("accepts the domain, since half of these are known by it", () => {
+    expectRank("most-visited-websites", "google.com", 1);
+    expectRank("most-visited-websites", "youtube.com", 2);
+    expectRank("most-visited-websites", "bbc.co.uk", 49);
+    expectRank("most-visited-websites", "t.me", 44);
+  });
+
+  it("accepts the name people still use for a renamed site", () => {
+    expectRank("most-visited-websites", "Twitter", 6);
+    expectRank("most-visited-websites", "X", 6);
+  });
+
+  it("keeps the three Yahoo entries apart", () => {
+    expectRank("most-visited-websites", "Yahoo!", 13);
+    expectRank("most-visited-websites", "Yahoo", 13);
+    expectRank("most-visited-websites", "Yahoo Japan", 12);
+    expectRank("most-visited-websites", "Yahoo! News Japan", 38);
+  });
+
+  it("resolves a site whose name is a fragment of a longer one", () => {
+    // "Microsoft" is an entry outright and a prefix of two others.
+    expectRank("most-visited-websites", "Microsoft", 32);
+    expectRank("most-visited-websites", "Microsoft Bing", 8);
+    expectRank("most-visited-websites", "Bing", 8);
+    expectRank("most-visited-websites", "Google Search", 1);
+  });
+});
+
+describe("android apps", () => {
+  it("accepts the app by the name on the icon", () => {
+    expectRank("android-most-downloaded", "WhatsApp", 14);
+    expectRank("android-most-downloaded", "Instagram", 25);
+    expectRank("android-most-downloaded", "Snapchat", 42);
+    expectRank("android-most-downloaded", "TikTok", 58);
+    expectRank("android-most-downloaded", "Spotify", 68);
+    expectRank("android-most-downloaded", "Subway Surfers", 36);
+  });
+
+  it("accepts the short name of an app whose listing carries a tagline", () => {
+    expectRank("android-most-downloaded", "Truecaller", 95);
+    expectRank("android-most-downloaded", "Viber", 78);
+    expectRank("android-most-downloaded", "Picsart", 96);
+    expectRank("android-most-downloaded", "Microsoft Word", 43);
+    expectRank("android-most-downloaded", "Excel", 47);
+  });
+
+  it("accepts the name people still use for a renamed app", () => {
+    expectRank("android-most-downloaded", "Twitter", 60);
+    expectRank("android-most-downloaded", "X", 60);
+    expectRank("android-most-downloaded", "Mi Drop", 76);
+  });
+
+  it("flags a publisher prefix shared by many entries", () => {
+    // Thirty-four entries are Google apps, so the bare word cannot be an answer.
+    expectAmbiguous("android-most-downloaded", "Google", 30);
+    expectAmbiguous("android-most-downloaded", "Google Play", 4);
+    expectAmbiguous("android-most-downloaded", "Calculator", 3);
+  });
+
+  it("still resolves a Google app named in full", () => {
+    expectRank("android-most-downloaded", "Google Maps", 3);
+    expectRank("android-most-downloaded", "Gmail", 7);
+    expectRank("android-most-downloaded", "Google Chrome", 6);
+    expectRank("android-most-downloaded", "Chrome", 6);
+  });
+});
+
 describe("people and places", () => {
   it("accepts footballers by surname and without accents", () => {
     expectRank("football-goalscorers", "Ronaldo", 1);

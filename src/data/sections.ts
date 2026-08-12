@@ -15,7 +15,12 @@ export type Section = {
 
 export const SECTIONS: Section[] = [
   { id: "screen", name: "Screen", categories: ["Film", "Television"], accent: "#f472b6" },
-  { id: "sound", name: "Music & Internet", categories: ["Music", "Internet"], accent: "#a78bfa" },
+  {
+    id: "sound",
+    name: "Music & Internet",
+    categories: ["Music", "Internet", "Apps"],
+    accent: "#a78bfa",
+  },
   { id: "play", name: "Games & Sport", categories: ["Games", "Sport"], accent: "#4ade80" },
   { id: "world", name: "World", categories: ["Geography", "Architecture"], accent: "#38bdf8" },
   { id: "money", name: "Business", categories: ["Business", "Economics"], accent: "#fbbf24" },
