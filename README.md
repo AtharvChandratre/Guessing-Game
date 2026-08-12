@@ -23,6 +23,12 @@ There is no turn limit - play as long as you like, then end the game and compare
   "Godfather II" all resolve to the same entry, and typo tolerance never changes a number - asking
   for "Godfather 3" does not hand you Part II.
 
+Team names are remembered per browser tab, so refreshing the page brings the same two teams back
+instead of resetting to "Team A" and "Team B". They live in `sessionStorage` rather than
+`localStorage` deliberately: a second tab is a second game with its own names, and closing the tab
+ends the session rather than greeting the next group with someone else's team. Nothing else is
+persisted - a refresh mid-game still returns to setup.
+
 Two scoring modes are available at setup:
 
 - **Rank = points** (default): deeper entries pay more.
@@ -36,6 +42,40 @@ npm run dev
 ```
 
 Then open http://localhost:3000.
+
+## Tests
+
+```bash
+npm test          # once
+npm run test:watch
+```
+
+The suite covers the matcher, since being told a correct guess is wrong is the
+one failure that ruins a game. It runs over the real shipped lists rather than
+fixtures - 255 tests, most of them sweeping all 1753 entries.
+
+| File | What it holds the line on |
+| --- | --- |
+| `tests/normalize.test.ts` | Case, punctuation, accents, articles, non-Latin scripts, sequel numbering |
+| `tests/lists.test.ts` | Per-list invariants: gapless ranks, every name and alias resolves to itself, no key collisions, every entry reachable once the ones above it are claimed |
+| `tests/resolve.test.ts` | The three matching passes, the digit guard, ambiguity, claim awareness, cost |
+| `tests/real-guesses.test.ts` | How people actually type, list by list, plus measured recall floors |
+| `tests/known-gaps.test.ts` | Guesses that ought to work and do not |
+| `tests/outcomes.test.ts` | Whether a given result costs you the round |
+| `tests/session.test.ts` | Team names surviving a refresh, and storage failing safely |
+
+Two of those need explaining.
+
+**Recall floors.** `real-guesses.test.ts` perturbs all 1753 names with a fixed
+seed and asserts a floor on how many still resolve - 90% for a wrong letter,
+84% for a missing one, 57% for a transposition. They sit just under today's
+rates, so a change that quietly makes matching stricter fails the build.
+Raising a floor after an improvement is how you are meant to edit that block.
+
+**Known gaps.** Every test in `known-gaps.test.ts` is marked `it.fails`, so it
+is green while the gap exists and turns red the moment someone closes it. That
+red is the prompt to delete the `.fails` and move the case into
+`real-guesses.test.ts`. Nothing in there is a comment that can rot.
 
 ## Deploying to Vercel
 
@@ -131,6 +171,7 @@ src/
     types.ts      Shared types
     match.ts      Guess normalization and fuzzy matching
     game.ts       Game state reducer and scoring
+    session.ts    Per-tab persistence of the team names
 ```
 
 ## Refreshing the data

@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LISTS, getList } from "@/data/lists";
 import { sectionFor, toBands } from "@/data/sections";
 import { DEFAULT_SETTINGS } from "@/lib/game";
+import { readTeamNames, writeTeamNames } from "@/lib/session";
 import type { GameList, GameSettings, ScoringMode, TeamId } from "@/lib/types";
 
 const TIMER_OPTIONS: { label: string; value: number | null }[] = [
@@ -61,22 +62,39 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
   // Bands of cards, dropping any section the current search emptied out.
   const bands = useMemo(() => toBands(visibleLists), [visibleLists]);
 
+  // Restore the names this tab was last using. This runs after mount rather
+  // than seeding useState, because the page is prerendered: reading storage
+  // during the first render would make the server and client markup disagree.
+  // The cost is one frame showing the defaults.
+  useEffect(() => {
+    const stored = readTeamNames();
+    if (stored) setSettings((s) => ({ ...s, teamNames: stored }));
+  }, []);
+
   const choose = (list: GameList) => {
     setSettings((s) => ({ ...s, listId: list.id }));
     setPickerOpen(false);
   };
 
-  const setTeamName = (team: TeamId, value: string) =>
-    setSettings((s) => ({ ...s, teamNames: { ...s.teamNames, [team]: value } }));
+  // Written on every keystroke rather than from an effect: an effect would have
+  // to be ordered against the restore above, and getting that ordering wrong
+  // means silently overwriting the stored names with the defaults.
+  const setTeamName = (team: TeamId, value: string) => {
+    const teamNames = { ...settings.teamNames, [team]: value };
+    setSettings((s) => ({ ...s, teamNames }));
+    writeTeamNames(teamNames);
+  };
 
-  const start = () =>
-    onStart({
-      ...settings,
-      teamNames: {
-        A: settings.teamNames.A.trim() || "Team A",
-        B: settings.teamNames.B.trim() || "Team B",
-      },
-    });
+  const start = () => {
+    const teamNames = {
+      A: settings.teamNames.A.trim() || "Team A",
+      B: settings.teamNames.B.trim() || "Team B",
+    };
+    // Persist what the game will actually call them, so a team left blank comes
+    // back as "Team A" rather than as an empty box.
+    writeTeamNames(teamNames);
+    onStart({ ...settings, teamNames });
+  };
 
   return (
     <div className="shell shell-wide">
