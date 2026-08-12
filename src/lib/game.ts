@@ -32,6 +32,31 @@ export function pointsFor(rank: number, listSize: number, scoring: ScoringMode):
   return scoring === "rank" ? rank : listSize - rank + 1;
 }
 
+/** Turns in a full round: one per team. */
+export const TURNS_PER_ROUND = 2;
+
+/**
+ * Split `state.turn` into the round it belongs to and which team's go it is
+ * within that round. Turn 1 is round 1 leg 1, turn 2 is round 1 leg 2, turn 3
+ * opens round 2.
+ *
+ * Team A always takes the odd turns, so the leg also identifies the team - but
+ * the label is deliberately positional rather than named, so it still reads
+ * correctly if a third team is ever added.
+ */
+export function roundOf(turn: number): { round: number; leg: number } {
+  return {
+    round: Math.floor((turn - 1) / TURNS_PER_ROUND) + 1,
+    leg: ((turn - 1) % TURNS_PER_ROUND) + 1,
+  };
+}
+
+/** "1-1", "1-2", "2-1"... the round and the go within it. */
+export function roundLabel(turn: number): string {
+  const { round, leg } = roundOf(turn);
+  return `${round}-${leg}`;
+}
+
 export const other = (team: TeamId): TeamId => (team === "A" ? "B" : "A");
 
 export type Action =

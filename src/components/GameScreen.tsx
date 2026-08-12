@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Timer from "./Timer";
 import Scoreboard from "./Scoreboard";
 import GuessLog from "./GuessLog";
-import { pointsFor } from "@/lib/game";
+import { pointsFor, roundLabel } from "@/lib/game";
 import type { GameList, GameState, TurnRecord } from "@/lib/types";
 
 type Props = {
@@ -78,7 +78,7 @@ export default function GameScreen({ state, list, onGuess, onTimeout, onEnd }: P
       <div className="spread" style={{ marginBottom: 18 }}>
         <div>
           <p className="eyebrow">{list.name}</p>
-          <h2 style={{ margin: "4px 0 0", fontSize: 22 }}>Round {state.turn}</h2>
+          <h2 style={{ margin: "4px 0 0", fontSize: 22 }}>Round {roundLabel(state.turn)}</h2>
         </div>
         <div className="row">
           {timed ? (

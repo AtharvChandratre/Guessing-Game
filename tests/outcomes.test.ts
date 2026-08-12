@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { reducer, initialState, DEFAULT_SETTINGS } from "@/lib/game";
+import { reducer, initialState, DEFAULT_SETTINGS, roundLabel, roundOf } from "@/lib/game";
 import { byId } from "./helpers";
 
 /**
@@ -81,6 +81,59 @@ describe("a guess that fits several entries", () => {
     expect(new Set(after.history.map((r) => r.id)).size).toBe(2);
     // Both attempts belong to the same round.
     expect(new Set(after.history.map((r) => r.turn)).size).toBe(1);
+  });
+});
+
+describe("round labelling", () => {
+  it("numbers each team's go within the round", () => {
+    expect([1, 2, 3, 4, 5, 6].map(roundLabel)).toEqual([
+      "1-1",
+      "1-2",
+      "2-1",
+      "2-2",
+      "3-1",
+      "3-2",
+    ]);
+  });
+
+  it("opens a new round only once both teams have played", () => {
+    expect(roundOf(2)).toEqual({ round: 1, leg: 2 });
+    expect(roundOf(3)).toEqual({ round: 2, leg: 1 });
+    expect(roundOf(100)).toEqual({ round: 50, leg: 2 });
+    expect(roundOf(101)).toEqual({ round: 51, leg: 1 });
+  });
+
+  it("advances the label as the turn passes between teams", () => {
+    let state = start();
+    expect(roundLabel(state.turn)).toBe("1-1");
+    state = guess(state, "Half-Life 3"); // a miss passes the turn
+    expect(roundLabel(state.turn)).toBe("1-2");
+    state = guess(state, "Half-Life 3");
+    expect(roundLabel(state.turn)).toBe("2-1");
+  });
+
+  it("holds the label steady while a team keeps its turn", () => {
+    // A franchise name and a name already taken both send the same team round
+    // again. The label must not tick, or the round number would count attempts.
+    let state = guess(start(), "Minecraft"); // A scores, B is up: 1-2
+    expect(roundLabel(state.turn)).toBe("1-2");
+    state = guess(state, "Pokemon"); // ambiguous, B keeps the turn
+    expect(roundLabel(state.turn)).toBe("1-2");
+    state = guess(state, "Minecraft"); // already taken, B keeps the turn
+    expect(roundLabel(state.turn)).toBe("1-2");
+    state = guess(state, "Tetris"); // B scores, round 2 opens
+    expect(roundLabel(state.turn)).toBe("2-1");
+  });
+
+  it("ticks the label when a timeout ends a turn", () => {
+    const after = reducer(start(), { type: "timeout" });
+    expect(roundLabel(after.turn)).toBe("1-2");
+  });
+
+  it("restarts at 1-1 for a rematch", () => {
+    const played = guess(guess(start(), "Minecraft"), "Tetris");
+    expect(roundLabel(played.turn)).toBe("2-1");
+    expect(roundLabel(reducer(played, { type: "playAgain" }).turn)).toBe("1-1");
   });
 });
 

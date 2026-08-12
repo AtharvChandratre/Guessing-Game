@@ -17,9 +17,10 @@ export default function ResultsScreen({
   onNewSetup: () => void;
 }) {
   const result = winner(state);
-  // Rounds completed, not attempts: a duplicate guess adds a record without
-  // ending the round.
-  const rounds = state.turn - 1;
+  // Turns taken, not attempts: a duplicate or ambiguous guess adds a record
+  // without ending the turn. Counted in turns rather than rounds because a game
+  // can be stopped mid-round, and half a round is not a number worth rendering.
+  const turns = state.turn - 1;
   const hits = state.history.filter((r) => r.outcome === "hit").length;
   const claimedCount = Object.keys(state.claimed).length;
   const margin = Math.abs(state.scores.A - state.scores.B);
@@ -41,8 +42,8 @@ export default function ResultsScreen({
               {state.settings.teamNames[result as TeamId]} wins
             </div>
             <p className="lede" style={{ margin: "8px auto 0", textAlign: "center" }}>
-              by {margin} point{margin === 1 ? "" : "s"} after {rounds} round
-              {rounds === 1 ? "" : "s"} of {list.name}
+              by {margin} point{margin === 1 ? "" : "s"} after {turns} turn
+              {turns === 1 ? "" : "s"} of {list.name}
             </p>
           </>
         )}
@@ -65,8 +66,8 @@ export default function ResultsScreen({
         <h2>How it went</h2>
         <div className="stat-grid">
           <div className="stat">
-            <div className="value">{rounds}</div>
-            <div className="label">Rounds played</div>
+            <div className="value">{turns}</div>
+            <div className="label">Turns played</div>
           </div>
           <div className="stat">
             <div className="value">{hits}</div>
