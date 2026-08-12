@@ -192,6 +192,23 @@ h2 {
 
 /* ---------- setup ---------- */
 
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 1 320px;
+}
+
+.search .text-input {
+  padding: 9px 12px;
+}
+
+.search-count {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .list-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

@@ -30,7 +30,17 @@ const SCORING_OPTIONS: { mode: ScoringMode; title: string; desc: string }[] = [
 
 export default function SetupScreen({ onStart }: { onStart: (settings: GameSettings) => void }) {
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
+  const [query, setQuery] = useState("");
   const selectedList = getList(settings.listId);
+
+  const needle = query.trim().toLowerCase();
+  const visibleLists = needle
+    ? LISTS.filter((list) =>
+        [list.name, list.category, list.blurb].some((field) =>
+          field.toLowerCase().includes(needle),
+        ),
+      )
+    : LISTS;
 
   const setTeamName = (team: TeamId, value: string) =>
     setSettings((s) => ({ ...s, teamNames: { ...s.teamNames, [team]: value } }));
@@ -55,9 +65,26 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
       </p>
 
       <section className="panel">
-        <h2>1. Pick a list</h2>
+        <div className="spread" style={{ marginBottom: 14 }}>
+          <h2 style={{ margin: 0 }}>1. Pick a list</h2>
+          <div className="search">
+            <input
+              className="text-input"
+              type="search"
+              value={query}
+              placeholder={`Search ${LISTS.length} lists...`}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search lists"
+            />
+            {needle ? (
+              <span className="search-count">
+                {visibleLists.length} of {LISTS.length}
+              </span>
+            ) : null}
+          </div>
+        </div>
         <div className="list-grid">
-          {LISTS.map((list) => (
+          {visibleLists.map((list) => (
             <button
               key={list.id}
               type="button"
@@ -72,6 +99,12 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
             </button>
           ))}
         </div>
+        {visibleLists.length === 0 ? (
+          <p className="hint">
+            Nothing matches &ldquo;{query.trim()}&rdquo;. Try a category like film, music, sport or
+            geography.
+          </p>
+        ) : null}
         {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
         <p className="hint">
           Source:{" "}

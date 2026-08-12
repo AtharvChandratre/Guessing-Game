@@ -42,13 +42,15 @@ variables, so it deploys as-is: import the repo on Vercel and accept the detecte
 
 ## The lists
 
-Fifteen to start, across film, music, internet, games, business, geography, architecture and sport.
+Seventeen, across film, television, music, internet, games, business, geography, architecture and
+sport. The setup screen has a search box that filters them by name, category or description.
 Every list is scraped rather than written from memory, and each one carries the source and scrape
 date it came from, shown on the setup screen:
 
 | List | Entries | Source |
 | --- | --- | --- |
 | IMDb Top 100 / Top 250 Movies | 100 / 250 | [IMDb Top 250](https://www.imdb.com/chart/top/) |
+| IMDb Top 100 / Top 250 TV Shows | 100 / 250 | [IMDb Top 250 TV](https://www.imdb.com/chart/toptv/) |
 | Highest-Grossing Films | 50 | Wikipedia |
 | Most-Streamed Songs on Spotify | 100 | Wikipedia |
 | Most-Subscribed YouTube Channels | 100 | Wikipedia |
@@ -61,7 +63,7 @@ date it came from, shown on the setup screen:
 | Largest Countries by Area | 100 | Wikipedia |
 | Largest Economies by GDP | 100 | Wikipedia |
 | Tallest Buildings in the World | 87 | Wikipedia |
-| NBA All-Time Scoring Leaders | 50 | Wikipedia |
+| All-Time Football Goalscorers | 82 | Wikipedia (RSSSF list) |
 
 Most of these rankings move over time - box-office totals, stream counts, follower counts, market
 caps and IMDb's ratings all change - so each affected list carries a `caveat` shown at setup. The
@@ -95,6 +97,10 @@ setup screen, scoring and end-of-game reveal all read from that array.
 state abbreviations). `note` is optional flavour text shown when the entry is claimed. Keep aliases
 unambiguous: if two entries can answer to the same alias, the matcher treats it like a repeated
 name rather than picking one.
+
+Where a source genuinely holds two entries of the same name - the US and UK versions of The Office,
+both runs of Twin Peaks - the entry name is disambiguated (`The Office (2005)`) and the bare title
+kept as an alias on both. Guessing it once claims the first, guessing it again claims the second.
 
 ## Project layout
 

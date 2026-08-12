@@ -1,6 +1,8 @@
 import type { GameList } from "@/lib/types";
 import { imdbTop100 } from "./imdb-top-100";
 import { imdbTop250 } from "./imdb-top-250";
+import { imdbTvTop100 } from "./imdb-tv-top-100";
+import { imdbTvTop250 } from "./imdb-tv-top-250";
 import { highestGrossingFilms } from "./highest-grossing-films";
 import { spotifySongs } from "./spotify-most-streamed";
 import { youtubeChannels } from "./youtube-most-subscribed";
@@ -12,7 +14,7 @@ import { largestCities } from "./largest-cities";
 import { countriesByArea } from "./countries-area";
 import { countriesByGdp } from "./countries-gdp";
 import { tallestBuildings } from "./tallest-buildings";
-import { nbaScoringLeaders } from "./nba-scoring-leaders";
+import { footballGoalscorers } from "./football-goalscorers";
 import { largestCompanies } from "./companies-market-cap";
 
 /**
@@ -25,6 +27,8 @@ import { largestCompanies } from "./companies-market-cap";
 export const LISTS: GameList[] = [
   imdbTop100,
   imdbTop250,
+  imdbTvTop100,
+  imdbTvTop250,
   highestGrossingFilms,
   spotifySongs,
   youtubeChannels,
@@ -37,7 +41,7 @@ export const LISTS: GameList[] = [
   countriesByArea,
   countriesByGdp,
   tallestBuildings,
-  nbaScoringLeaders,
+  footballGoalscorers,
 ];
 
 export function getList(id: string): GameList {
