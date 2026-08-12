@@ -3,12 +3,57 @@ import type { GameList, ListItem } from "./types";
 /** Combining marks left behind by NFD decomposition. */
 const DIACRITICS = new RegExp("[\\u0300-\\u036f]", "g");
 
+const ROMAN_VALUES: Record<string, number> = { i: 1, v: 5, x: 10, l: 50, c: 100 };
+
+/** Parse a lowercase roman numeral, or null if it is not one. */
+function romanToNumber(token: string): number | null {
+  if (!/^[ivxlc]+$/.test(token)) return null;
+  let total = 0;
+  for (let i = 0; i < token.length; i++) {
+    const value = ROMAN_VALUES[token[i]];
+    const next = ROMAN_VALUES[token[i + 1]];
+    total += next && next > value ? -value : value;
+  }
+  return total;
+}
+
+/**
+ * Canonicalize sequel numbering so every way of writing the same instalment
+ * lands on one key: "The Godfather Part II", "Godfather Part 2" and
+ * "Godfather II" all become "godfather 2".
+ *
+ * Applied to stored names and guesses alike, so a conversion that misreads a
+ * title (Malcolm X) still matches itself - it only has to be consistent.
+ */
+function canonicalizeSequel(text: string): string {
+  // "part 2", "chapter ii", "episode v" -> just the arabic number, wherever it
+  // sits. Converting here as well as at the end keeps a mid-title numeral
+  // ("Episode V - The Empire Strikes Back") in step with a trailing one.
+  const withoutFiller = text.replace(
+    /\b(?:part|pt|chapter|episode|volume|vol)\s+(\d+|[ivxlc]+)\b/g,
+    (whole, token: string) => {
+      if (/^\d+$/.test(token)) return token;
+      const value = romanToNumber(token);
+      return value === null ? whole : String(value);
+    },
+  );
+
+  // A trailing roman numeral is a sequel number. Leading or mid-title ones are
+  // left alone, so "V for Vendetta" keeps its V.
+  return withoutFiller.replace(/\s([ivxlc]+)$/, (whole, token: string) => {
+    if (token === "i") return whole; // "Rocky I" is rare; "I" as a word is not.
+    const value = romanToNumber(token);
+    return value === null ? whole : ` ${value}`;
+  });
+}
+
 /**
  * Fold a guess down to a comparable key: lowercase, no accents, no punctuation,
- * no leading article, single-spaced. "The Shawshank Redemption!" -> "shawshank redemption"
+ * no leading article, single-spaced, sequel numbering canonicalized.
+ * "The Shawshank Redemption!" -> "shawshank redemption"
  */
 export function normalize(raw: string): string {
-  return raw
+  const base = raw
     .normalize("NFD")
     .replace(DIACRITICS, "")
     .toLowerCase()
@@ -19,6 +64,8 @@ export function normalize(raw: string): string {
     .replace(/\s+/g, " ")
     .trim()
     .replace(/^(the|a|an)\s+/, "");
+
+  return canonicalizeSequel(base);
 }
 
 /** Levenshtein distance, capped early once it exceeds `max` so long strings stay cheap. */
@@ -41,6 +88,9 @@ function editDistance(a: string, b: string, max: number): number {
   }
   return prev[b.length];
 }
+
+/** The digits in a key, in order: "godfather 2" -> "2", "star wars 1977" -> "1977". */
+const digitsOf = (text: string) => (text.match(/\d+/g) ?? []).join(" ");
 
 /** Typo budget: none for very short names, growing slowly for longer ones. */
 function tolerance(len: number): number {
@@ -152,8 +202,13 @@ export function findMatch(
   let claimedBest: ListItem | null = null;
   let claimedBestDistance = budget + 1;
 
+  const needleDigits = digitsOf(needle);
+
   for (const { item, keys } of index) {
     for (const key of keys) {
+      // Typos are letters, not numbers. Without this, "Godfather 3" quietly
+      // becomes Part II and "Toy Story 4" becomes Toy Story 3.
+      if (digitsOf(key) !== needleDigits) continue;
       const distance = editDistance(needle, key, budget);
       if (isClaimed(item)) {
         if (distance < claimedBestDistance) {

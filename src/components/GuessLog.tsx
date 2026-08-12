@@ -28,7 +28,7 @@ export default function GuessLog({ state }: { state: GameState }) {
       {state.history.map((record) => {
         const { main, sub } = describe(record);
         return (
-          <li key={record.turn}>
+          <li key={record.id}>
             <span className={`who ${record.team.toLowerCase()}`}>
               {state.settings.teamNames[record.team]}
             </span>

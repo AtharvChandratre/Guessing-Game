@@ -47,6 +47,9 @@ export type GameSettings = {
 export type GuessOutcome = "hit" | "miss" | "duplicate" | "timeout";
 
 export type TurnRecord = {
+  /** Monotonic id per attempt. Distinct from `turn`, since a duplicate guess
+   *  adds a record without ending the round. */
+  id: number;
   turn: number;
   team: TeamId;
   /** Raw text the team typed. Empty for a timeout. */

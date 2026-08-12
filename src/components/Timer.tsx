@@ -24,7 +24,13 @@ export default function Timer({ duration, resetKey, paused, onExpire }: Props) {
   const onExpireRef = useRef(onExpire);
   onExpireRef.current = onExpire;
 
+  // Seconds left, mirrored in a ref. The ticking effect below has to read this
+  // in the same commit the reset effect writes it, and a state update would
+  // still be showing the previous round's value at that point.
+  const remainingRef = useRef(duration);
+
   useEffect(() => {
+    remainingRef.current = duration;
     setRemaining(duration);
     expiredRef.current = false;
   }, [duration, resetKey]);
@@ -32,26 +38,24 @@ export default function Timer({ duration, resetKey, paused, onExpire }: Props) {
   useEffect(() => {
     if (paused) return;
 
-    // Track wall-clock time so a throttled background tab cannot gain the team extra seconds.
-    const deadline = Date.now() + remaining * 1000;
+    // Track wall-clock time so a throttled background tab cannot gain the team
+    // extra seconds. Seeded from the ref so a fresh round starts at `duration`
+    // and a resume picks up exactly where the pause left off.
+    const deadline = Date.now() + remainingRef.current * 1000;
     const id = window.setInterval(() => {
-      const left = (deadline - Date.now()) / 1000;
+      const left = Math.max(0, (deadline - Date.now()) / 1000);
+      remainingRef.current = left;
+      setRemaining(left);
       if (left <= 0) {
         window.clearInterval(id);
-        setRemaining(0);
         if (!expiredRef.current) {
           expiredRef.current = true;
           onExpireRef.current();
         }
-      } else {
-        setRemaining(left);
       }
     }, 200);
 
     return () => window.clearInterval(id);
-    // `remaining` is intentionally excluded: it is read once to seed the deadline,
-    // and including it would restart the interval on every tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paused, duration, resetKey]);
 
   const pct = duration > 0 ? Math.max(0, Math.min(100, (remaining / duration) * 100)) : 0;

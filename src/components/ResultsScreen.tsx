@@ -17,7 +17,9 @@ export default function ResultsScreen({
   onNewSetup: () => void;
 }) {
   const result = winner(state);
-  const rounds = state.history.length;
+  // Rounds completed, not attempts: a duplicate guess adds a record without
+  // ending the round.
+  const rounds = state.turn - 1;
   const hits = state.history.filter((r) => r.outcome === "hit").length;
   const claimedCount = Object.keys(state.claimed).length;
   const margin = Math.abs(state.scores.A - state.scores.B);

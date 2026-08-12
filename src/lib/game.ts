@@ -54,29 +54,25 @@ export function reducer(state: GameState, action: Action): GameState {
 
       const match = findMatch(action.list, text, state.claimed);
       const alreadyClaimed = match ? state.claimed[match.rank] !== undefined : false;
+      const base = { id: state.history.length + 1, turn: state.turn, team: state.currentTeam, guess: text };
 
       let record: TurnRecord;
       if (!match) {
-        record = { turn: state.turn, team: state.currentTeam, guess: text, outcome: "miss", points: 0 };
+        record = { ...base, outcome: "miss", points: 0 };
       } else if (alreadyClaimed) {
-        record = {
-          turn: state.turn,
-          team: state.currentTeam,
-          guess: text,
-          outcome: "duplicate",
-          points: 0,
-          matched: match,
-        };
+        record = { ...base, outcome: "duplicate", points: 0, matched: match };
       } else {
         record = {
-          turn: state.turn,
-          team: state.currentTeam,
-          guess: text,
+          ...base,
           outcome: "hit",
           points: pointsFor(match.rank, action.list.items.length, state.settings.scoring),
           matched: match,
         };
       }
+
+      // Naming something already taken costs nothing but the clock: the same
+      // team stays up and guesses again rather than losing the round to it.
+      const keepTurn = record.outcome === "duplicate";
 
       return {
         ...state,
@@ -86,14 +82,15 @@ export function reducer(state: GameState, action: Action): GameState {
             ? { ...state.claimed, [match.rank]: state.currentTeam }
             : state.claimed,
         history: [record, ...state.history],
-        currentTeam: other(state.currentTeam),
-        turn: state.turn + 1,
+        currentTeam: keepTurn ? state.currentTeam : other(state.currentTeam),
+        turn: keepTurn ? state.turn : state.turn + 1,
       };
     }
 
     case "timeout": {
       if (state.phase !== "playing") return state;
       const record: TurnRecord = {
+        id: state.history.length + 1,
         turn: state.turn,
         team: state.currentTeam,
         guess: "",

@@ -8,13 +8,17 @@ There is no turn limit - play as long as you like, then end the game and compare
 
 - Teams A and B alternate, one guess per turn.
 - A correct guess scores the entry's rank (`#99` is worth 99 points under the default scoring mode).
-- An entry can only be claimed once. Naming a claimed entry scores nothing and passes the turn.
+- An entry can only be claimed once. Naming a claimed entry scores nothing but does **not** end the
+  round: the same team guesses again, on the same clock.
 - A wrong guess scores nothing and passes the turn.
 - With the optional round timer on, running out of time scores nothing and passes the turn.
 - Matching is forgiving: case, punctuation, accents and a leading "the" are ignored, aliases such
   as tickers and original-language titles are accepted, small typos are tolerated on longer names,
   and a distinctive part of a longer name works ("Shawshank", "Empire Strikes Back"). A fragment
   that fits more than one entry is rejected rather than guessed at.
+- Sequel numbering is canonicalized, so "The Godfather Part II", "Godfather Part 2" and
+  "Godfather II" all resolve to the same entry, and typo tolerance never changes a number - asking
+  for "Godfather 3" does not hand you Part II.
 
 Two scoring modes are available at setup:
 

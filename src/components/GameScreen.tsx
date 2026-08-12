@@ -25,7 +25,7 @@ function Feedback({ record, list, scoring }: { record: TurnRecord; list: GameLis
     },
     duplicate: {
       headline: `${record.matched?.name} was already taken.`,
-      detail: `It went for ${worth} points earlier. No points this turn.`,
+      detail: `It went for ${worth} points earlier. Still your turn - guess again.`,
     },
     miss: {
       headline: `"${record.guess}" is not on the list.`,
@@ -53,10 +53,11 @@ export default function GameScreen({ state, list, onGuess, onTimeout, onEnd }: P
   const claimedCount = Object.keys(state.claimed).length;
   const timed = state.settings.turnSeconds !== null;
 
-  // Hand the keyboard to the next team as soon as the turn flips.
+  // Hand the keyboard back after every attempt, whether the turn flipped or the
+  // same team is going again after naming something already taken.
   useEffect(() => {
     if (!paused) inputRef.current?.focus();
-  }, [state.turn, paused]);
+  }, [state.history.length, paused]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
