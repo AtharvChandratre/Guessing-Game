@@ -146,7 +146,7 @@ export default function GameScreen({ state, list, onGuess, onTimeout, onEnd }: P
             {state.settings.scoring === "rank"
               ? "Points equal the entry's rank, so the deeper the cut the bigger the score."
               : "Points run high at the top of the list, so the famous answers pay best."}{" "}
-            Close spellings and common nicknames count.
+            Close spellings count, and so does a distinctive part of a longer name.
           </p>
         )}
       </section>

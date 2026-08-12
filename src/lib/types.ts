@@ -8,6 +8,14 @@ export type ListItem = {
   note?: string;
 };
 
+/** Where a list's ordering came from, shown in the UI so players can check it. */
+export type ListSource = {
+  name: string;
+  url: string;
+  /** ISO date the data was scraped. */
+  sourcedAt: string;
+};
+
 export type GameList = {
   id: string;
   name: string;
@@ -16,6 +24,7 @@ export type GameList = {
   blurb: string;
   /** Shown in setup when the ordering is a point-in-time snapshot rather than a fixed fact. */
   caveat?: string;
+  source: ListSource;
   items: ListItem[];
 };
 

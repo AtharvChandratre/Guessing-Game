@@ -13,7 +13,9 @@ export function normalize(raw: string): string {
     .replace(DIACRITICS, "")
     .toLowerCase()
     .replace(/&/g, " and ")
-    .replace(/[^a-z0-9\s]/g, " ")
+    // Keep letters and digits from any script, so non-Latin names (Cyrillic,
+    // Hangul, Arabic) survive instead of normalizing to an empty key.
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/^(the|a|an)\s+/, "");
@@ -71,6 +73,45 @@ function getIndex(list: GameList): Candidate[] {
   return index;
 }
 
+/** True when `needle` appears in `key` on whole-word boundaries. */
+function containsPhrase(key: string, needle: string): boolean {
+  let from = 0;
+  for (;;) {
+    const at = key.indexOf(needle, from);
+    if (at === -1) return false;
+    const before = at === 0 || key[at - 1] === " ";
+    const after = at + needle.length === key.length || key[at + needle.length] === " ";
+    if (before && after) return true;
+    from = at + 1;
+  }
+}
+
+/**
+ * Items whose name contains the guess as a whole phrase - how "shawshank" or
+ * "empire strikes back" reach their full titles without curated nicknames.
+ * Returns null unless exactly one item matches, so an ambiguous fragment like
+ * "godfather" asks the team to be more specific instead of picking for them.
+ */
+function uniquePhraseMatch(
+  index: Candidate[],
+  needle: string,
+  isClaimed: (item: ListItem) => boolean,
+): ListItem | null {
+  if (needle.length < 4) return null;
+
+  const hits: ListItem[] = [];
+  for (const { item, keys } of index) {
+    if (keys.some((key) => containsPhrase(key, needle))) hits.push(item);
+  }
+  if (hits.length === 0) return null;
+  if (hits.length === 1) return hits[0];
+
+  // Several items contain the phrase. Only resolve it if all but one are
+  // already claimed, which keeps repeat guesses of the same fragment working.
+  const open = hits.filter((item) => !isClaimed(item));
+  return open.length === 1 ? open[0] : null;
+}
+
 /**
  * Resolve a typed guess to a list entry, or null if nothing is close enough.
  *
@@ -99,6 +140,9 @@ export function findMatch(
     claimedExact ??= item;
   }
   if (claimedExact) return claimedExact;
+
+  const phrase = uniquePhraseMatch(index, needle, isClaimed);
+  if (phrase) return phrase;
 
   const budget = tolerance(needle.length);
   if (budget === 0) return null;

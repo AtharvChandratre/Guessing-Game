@@ -73,6 +73,13 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
           ))}
         </div>
         {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
+        <p className="hint">
+          Source:{" "}
+          <a href={selectedList.source.url} target="_blank" rel="noreferrer noopener">
+            {selectedList.source.name}
+          </a>
+          , scraped {selectedList.source.sourcedAt}.
+        </p>
       </section>
 
       <section className="panel">
