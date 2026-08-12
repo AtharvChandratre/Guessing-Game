@@ -27,6 +27,11 @@ function Feedback({ record, list, scoring }: { record: TurnRecord; list: GameLis
       headline: `${record.matched?.name} was already taken.`,
       detail: `It went for ${worth} points earlier. Still your turn - guess again.`,
     },
+    ambiguous: {
+      headline: `"${record.guess}" matches more than one entry.`,
+      // Deliberately no names or count: that would hand out free answers.
+      detail: "Narrow it down and try again - still your turn.",
+    },
     miss: {
       headline: `"${record.guess}" is not on the list.`,
       detail: "No points. Turn passes.",

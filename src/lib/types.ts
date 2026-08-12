@@ -58,7 +58,7 @@ export type GameSettings = {
   turnSeconds: number | null;
 };
 
-export type GuessOutcome = "hit" | "miss" | "duplicate" | "timeout";
+export type GuessOutcome = "hit" | "miss" | "duplicate" | "ambiguous" | "timeout";
 
 export type TurnRecord = {
   /** Monotonic id per attempt. Distinct from `turn`, since a duplicate guess

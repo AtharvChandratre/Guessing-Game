@@ -11,6 +11,8 @@ function describe(record: TurnRecord) {
       };
     case "duplicate":
       return { main: record.matched?.name ?? record.guess, sub: "already claimed" };
+    case "ambiguous":
+      return { main: record.guess, sub: "matches more than one entry" };
     case "miss":
       return { main: record.guess, sub: "not on the list" };
     case "timeout":

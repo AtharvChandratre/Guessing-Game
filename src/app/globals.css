@@ -52,6 +52,12 @@ select {
   padding: 32px 20px 80px;
 }
 
+/* Setup needs the extra width to fit five list columns, one per section row. */
+.shell-wide {
+  max-width: 1280px;
+  padding-top: 24px;
+}
+
 /* ---------- shared bits ---------- */
 
 .eyebrow {
@@ -67,6 +73,17 @@ h1 {
   line-height: 1.1;
   margin: 6px 0 10px;
   letter-spacing: -0.02em;
+}
+
+/* Compact masthead, so the picker below it can own the viewport. */
+.shell-wide h1 {
+  font-size: clamp(26px, 3.4vw, 34px);
+  margin: 4px 0 6px;
+}
+
+.shell-wide .lede {
+  max-width: none;
+  margin-bottom: 16px;
 }
 
 h2 {
@@ -211,29 +228,41 @@ h2 {
 
 /* ---------- list picker ---------- */
 
+/*
+ * The section label lives in a left gutter beside its row rather than on a
+ * line above it. Five stacked headers cost ~135px of height for one word each;
+ * in the gutter they cost nothing and sit next to what they label.
+ */
+.band {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
 .band + .band {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .band-head {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 9px;
-  padding-left: 2px;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding-top: 11px;
 }
 
 .band-head::before {
   content: "";
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 3px;
   background: var(--accent);
   flex: none;
 }
 
 .band-name {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -241,32 +270,68 @@ h2 {
 }
 
 .band-count {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
 }
 
-.band-head::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, var(--line), transparent);
+/* Narrow screens drop to fewer columns, where a gutter no longer pays. */
+@media (max-width: 1120px) {
+  .band {
+    display: block;
+  }
+
+  .band-head {
+    padding-top: 0;
+    margin-bottom: 7px;
+  }
+
+  .band + .band {
+    margin-top: 16px;
+  }
 }
 
+/*
+ * Five fixed columns rather than auto-fill: the largest section holds five
+ * lists, so every band lands on exactly one row with no half-empty trailing
+ * rows. Auto-fill gave four columns and cost roughly two extra rows.
+ */
 .list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1120px) {
+  .list-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .list-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .list-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .list-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
   text-align: left;
   background: #101838;
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent, var(--line));
-  border-radius: 12px;
-  padding: 13px 14px;
+  border-radius: 11px;
+  padding: 11px 12px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -289,28 +354,51 @@ h2 {
   box-shadow: 0 0 0 2px rgba(91, 131, 255, 0.28);
 }
 
-.list-card .cat {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
+/* Two lines maximum: the full name is always shown in the preview strip. */
+.list-card .title {
   font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.32;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  min-height: 22px;
+}
+
+.card-meta .cat {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .variants {
   display: flex;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 5px;
 }
 
 .variant {
-  flex: 1;
   border: 1px solid var(--line);
   background: #0d1430;
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 13px;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 12px;
   font-weight: 700;
+  color: var(--muted);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
@@ -325,12 +413,58 @@ h2 {
   color: var(--text);
 }
 
-/* ---------- chosen-list summary ---------- */
+/* ---------- preview strip + chosen-list summary ---------- */
 
-.chosen-inline {
-  margin-top: 20px;
-  padding-top: 16px;
+/*
+ * Fixed height so hovering between cards with and without a caveat does not
+ * shift the layout under the cursor.
+ */
+.preview {
+  margin-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
+  min-height: 92px;
+}
+
+.preview-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preview-name {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.preview-count {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.preview-blurb {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.preview-meta {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.preview-meta .flag {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.preview-meta a {
+  color: #8ea2ff;
 }
 
 .chosen-bar {
@@ -575,6 +709,7 @@ h2 {
 }
 
 .feedback.duplicate,
+.feedback.ambiguous,
 .feedback.timeout {
   border-color: rgba(251, 146, 60, 0.5);
   background: rgba(251, 146, 60, 0.1);

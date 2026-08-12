@@ -139,46 +139,42 @@ function containsPhrase(key: string, needle: string): boolean {
 /**
  * Items whose name contains the guess as a whole phrase - how "shawshank" or
  * "empire strikes back" reach their full titles without curated nicknames.
- * Returns null unless exactly one item matches, so an ambiguous fragment like
- * "godfather" asks the team to be more specific instead of picking for them.
  */
-function uniquePhraseMatch(
-  index: Candidate[],
-  needle: string,
-  isClaimed: (item: ListItem) => boolean,
-): ListItem | null {
-  if (needle.length < 4) return null;
-
-  const hits: ListItem[] = [];
-  for (const { item, keys } of index) {
-    if (keys.some((key) => containsPhrase(key, needle))) hits.push(item);
-  }
-  if (hits.length === 0) return null;
-  if (hits.length === 1) return hits[0];
-
-  // Several items contain the phrase. Only resolve it if all but one are
-  // already claimed, which keeps repeat guesses of the same fragment working.
-  const open = hits.filter((item) => !isClaimed(item));
-  return open.length === 1 ? open[0] : null;
+function phraseCandidates(index: Candidate[], needle: string): ListItem[] {
+  if (needle.length < 4) return [];
+  return index
+    .filter(({ keys }) => keys.some((key) => containsPhrase(key, needle)))
+    .map(({ item }) => item);
 }
 
+export type MatchResult =
+  /** Resolved to a single entry. */
+  | { kind: "match"; item: ListItem }
+  /** A fragment several unclaimed entries answer to: "Pokemon", "Call of Duty". */
+  | { kind: "ambiguous"; options: ListItem[] }
+  | { kind: "none" };
+
 /**
- * Resolve a typed guess to a list entry, or null if nothing is close enough.
+ * Resolve a typed guess against a list.
  *
- * Exact matches always win over fuzzy ones. When one name covers several entries
- * (Grover Cleveland's two terms), an unclaimed entry is preferred over a claimed
- * one, so typing the name a second time reaches the second entry rather than
- * bouncing off the first as a duplicate. Otherwise the lowest rank wins.
+ * Passes run in order of confidence: an exact name or alias, then a distinctive
+ * phrase inside a longer name, then a fuzzy match for typos.
+ *
+ * An exact name that covers several entries (Grover Cleveland's two terms, both
+ * Offices) prefers an unclaimed one, so typing it again reaches the second
+ * entry. A *fragment* covering several entries is different: it is not a
+ * definite answer, so it comes back ambiguous and the team gets another go
+ * rather than being handed an entry it did not ask for.
  *
  * @param claimed Ranks already taken this game. Omit to ignore claim state.
  */
-export function findMatch(
+export function resolveGuess(
   list: GameList,
   guess: string,
   claimed?: Readonly<Record<number, unknown>>,
-): ListItem | null {
+): MatchResult {
   const needle = normalize(guess);
-  if (!needle) return null;
+  if (!needle) return { kind: "none" };
 
   const isClaimed = (item: ListItem) => claimed !== undefined && claimed[item.rank] !== undefined;
   const index = getIndex(list);
@@ -186,16 +182,24 @@ export function findMatch(
   let claimedExact: ListItem | null = null;
   for (const { item, keys } of index) {
     if (!keys.includes(needle)) continue;
-    if (!isClaimed(item)) return item;
+    if (!isClaimed(item)) return { kind: "match", item };
     claimedExact ??= item;
   }
-  if (claimedExact) return claimedExact;
+  if (claimedExact) return { kind: "match", item: claimedExact };
 
-  const phrase = uniquePhraseMatch(index, needle, isClaimed);
-  if (phrase) return phrase;
+  const candidates = phraseCandidates(index, needle);
+  if (candidates.length === 1) return { kind: "match", item: candidates[0] };
+  if (candidates.length > 1) {
+    const open = candidates.filter((item) => !isClaimed(item));
+    // Down to one still-available entry, so the fragment is no longer ambiguous.
+    if (open.length === 1) return { kind: "match", item: open[0] };
+    if (open.length > 1) return { kind: "ambiguous", options: open };
+    // Every candidate is taken: report one, which reads as a duplicate.
+    return { kind: "match", item: candidates[0] };
+  }
 
   const budget = tolerance(needle.length);
-  if (budget === 0) return null;
+  if (budget === 0) return { kind: "none" };
 
   let best: ListItem | null = null;
   let bestDistance = budget + 1;
@@ -222,5 +226,16 @@ export function findMatch(
     }
   }
 
-  return best ?? claimedBest;
+  const fuzzy = best ?? claimedBest;
+  return fuzzy ? { kind: "match", item: fuzzy } : { kind: "none" };
+}
+
+/** Convenience wrapper for callers that only care whether a guess lands. */
+export function findMatch(
+  list: GameList,
+  guess: string,
+  claimed?: Readonly<Record<number, unknown>>,
+): ListItem | null {
+  const result = resolveGuess(list, guess, claimed);
+  return result.kind === "match" ? result.item : null;
 }

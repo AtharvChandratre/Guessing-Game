@@ -14,8 +14,11 @@ There is no turn limit - play as long as you like, then end the game and compare
 - With the optional round timer on, running out of time scores nothing and passes the turn.
 - Matching is forgiving: case, punctuation, accents and a leading "the" are ignored, aliases such
   as tickers and original-language titles are accepted, small typos are tolerated on longer names,
-  and a distinctive part of a longer name works ("Shawshank", "Empire Strikes Back"). A fragment
-  that fits more than one entry is rejected rather than guessed at.
+  and a distinctive part of a longer name works ("Shawshank", "Empire Strikes Back").
+- A fragment that fits more than one entry - "Pokemon" against six Pokémon games, "Call of Duty"
+  against five - is reported as ambiguous rather than guessed at or called a miss. It scores
+  nothing, names nothing, and does **not** end the round: the same team narrows it down and tries
+  again. Once all but one candidate has been claimed the fragment resolves to the survivor.
 - Sequel numbering is canonicalized, so "The Godfather Part II", "Godfather Part 2" and
   "Godfather II" all resolve to the same entry, and typo tolerance never changes a number - asking
   for "Godfather 3" does not hand you Part II.
@@ -44,10 +47,12 @@ variables, so it deploys as-is: import the repo on Vercel and accept the detecte
 
 Seventeen, across film, television, music, internet, games, business, geography, architecture and
 sport. On the setup screen they are grouped into five colour-coded sections - Screen, Music &
-Internet, Games & Sport, World, Business - defined in `src/data/sections.ts`. Lists that are the
-same subject at different depths (IMDb's Top 100 and Top 250) share one card with a size toggle,
-and the picker collapses to a one-line summary once you have chosen, so the rest of setup stays in
-reach. A search box filters by list name, section, category or description.
+Internet, Games & Sport, World, Business - defined in `src/data/sections.ts`, each occupying a
+single row with its label in a left gutter. All of them fit on one screen at 1440x900. Lists that
+are the same subject at different depths (IMDb's Top 100 and Top 250) share one card with a size
+toggle; hovering a card previews its description, caveat and source below the grid; and the picker
+collapses to a one-line summary once you have chosen. A search box filters by list name, section,
+category or description.
 Every list is scraped rather than written from memory, and each one carries the source and scrape
 date it came from, shown on the setup screen:
 

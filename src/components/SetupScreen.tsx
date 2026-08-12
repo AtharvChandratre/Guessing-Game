@@ -33,8 +33,12 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   const [query, setQuery] = useState("");
   const [pickerOpen, setPickerOpen] = useState(true);
+  // Card being hovered or focused. The preview strip falls back to the
+  // selection, so moving the mouse away restores it rather than going blank.
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const selectedList = getList(settings.listId);
   const selectedSection = sectionFor(selectedList);
+  const previewList = previewId ? getList(previewId) : selectedList;
 
   const needle = query.trim().toLowerCase();
   const visibleLists = useMemo(
@@ -75,13 +79,12 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
     });
 
   return (
-    <div className="shell">
+    <div className="shell shell-wide">
       <p className="eyebrow">Two teams, one ranked list</p>
       <h1>Rank Rush</h1>
       <p className="lede">
-        Teams alternate turns naming entries from a ranked list. Land on one and you bank its rank as
-        points, so digging deeper into the list pays more than the obvious answers. Play as many
-        rounds as you like, then end the game and compare totals.
+        Teams take turns naming entries from a ranked list, banking each entry&rsquo;s rank as
+        points. The deep cuts pay best.
       </p>
 
       <section className="panel">
@@ -134,7 +137,12 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
                         onClick={() => choose(shown)}
                         role="button"
                         tabIndex={0}
+                        title={card.name}
                         aria-pressed={Boolean(active)}
+                        onMouseEnter={() => setPreviewId(shown.id)}
+                        onMouseLeave={() => setPreviewId(null)}
+                        onFocus={() => setPreviewId(shown.id)}
+                        onBlur={() => setPreviewId(null)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
@@ -142,26 +150,28 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
                           }
                         }}
                       >
-                        <div className="cat">{shown.category}</div>
                         <div className="title">{card.name}</div>
-                        <p className="blurb">{shown.blurb}</p>
-                        {card.variants.length > 1 ? (
-                          <div className="variants" onClick={(e) => e.stopPropagation()}>
-                            {card.variants.map((variant) => (
-                              <button
-                                key={variant.id}
-                                type="button"
-                                className="variant"
-                                aria-pressed={variant.id === settings.listId}
-                                onClick={() => choose(variant)}
-                              >
-                                {variant.series?.variant ?? variant.name}
-                              </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="count">{shown.items.length} entries</div>
-                        )}
+                        <div className="card-meta">
+                          {card.variants.length > 1 ? (
+                            <div className="variants" onClick={(e) => e.stopPropagation()}>
+                              {card.variants.map((variant) => (
+                                <button
+                                  key={variant.id}
+                                  type="button"
+                                  className="variant"
+                                  aria-pressed={variant.id === settings.listId}
+                                  onMouseEnter={() => setPreviewId(variant.id)}
+                                  onClick={() => choose(variant)}
+                                >
+                                  {variant.series?.variant.replace(/^Top\s+/, "") ?? variant.name}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <span>{shown.items.length}</span>
+                          )}
+                          <span className="cat">{shown.category}</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -178,26 +188,45 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
           </>
         ) : null}
 
-        <div className={`chosen${pickerOpen ? " chosen-inline" : ""}`}>
-          <div
-            className="chosen-bar"
-            style={{ ["--accent" as string]: selectedSection.accent }}
-          >
-            <div>
-              <span className="eyebrow">Playing</span>
-              <div className="chosen-name">{selectedList.name}</div>
+        {pickerOpen ? (
+          <div className="preview">
+            <div className="preview-head">
+              <span className="preview-name">{previewList.name}</span>
+              <span className="preview-count">{previewList.items.length} entries</span>
             </div>
-            <span className="chosen-count">{selectedList.items.length} entries</span>
+            <p className="preview-blurb">{previewList.blurb}</p>
+            <p className="preview-meta">
+              {previewList.caveat ? (
+                <>
+                  <span className="flag">Snapshot:</span> {previewList.caveat}{" "}
+                </>
+              ) : null}
+              Source:{" "}
+              <a href={previewList.source.url} target="_blank" rel="noreferrer noopener">
+                {previewList.source.name}
+              </a>
+              , scraped {previewList.source.sourcedAt}.
+            </p>
           </div>
-          {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
-          <p className="hint">
-            Source:{" "}
-            <a href={selectedList.source.url} target="_blank" rel="noreferrer noopener">
-              {selectedList.source.name}
-            </a>
-            , scraped {selectedList.source.sourcedAt}.
-          </p>
-        </div>
+        ) : (
+          <div className="chosen">
+            <div className="chosen-bar" style={{ ["--accent" as string]: selectedSection.accent }}>
+              <div>
+                <span className="eyebrow">Playing</span>
+                <div className="chosen-name">{selectedList.name}</div>
+              </div>
+              <span className="chosen-count">{selectedList.items.length} entries</span>
+            </div>
+            {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
+            <p className="hint">
+              Source:{" "}
+              <a href={selectedList.source.url} target="_blank" rel="noreferrer noopener">
+                {selectedList.source.name}
+              </a>
+              , scraped {selectedList.source.sourcedAt}.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="panel">

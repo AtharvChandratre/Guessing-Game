@@ -1,4 +1,4 @@
-import { findMatch } from "./match";
+import { resolveGuess } from "./match";
 import type {
   GameList,
   GameSettings,
@@ -52,12 +52,15 @@ export function reducer(state: GameState, action: Action): GameState {
       const text = action.text.trim();
       if (!text) return state;
 
-      const match = findMatch(action.list, text, state.claimed);
+      const result = resolveGuess(action.list, text, state.claimed);
+      const match = result.kind === "match" ? result.item : null;
       const alreadyClaimed = match ? state.claimed[match.rank] !== undefined : false;
       const base = { id: state.history.length + 1, turn: state.turn, team: state.currentTeam, guess: text };
 
       let record: TurnRecord;
-      if (!match) {
+      if (result.kind === "ambiguous") {
+        record = { ...base, outcome: "ambiguous", points: 0 };
+      } else if (!match) {
         record = { ...base, outcome: "miss", points: 0 };
       } else if (alreadyClaimed) {
         record = { ...base, outcome: "duplicate", points: 0, matched: match };
@@ -70,9 +73,10 @@ export function reducer(state: GameState, action: Action): GameState {
         };
       }
 
-      // Naming something already taken costs nothing but the clock: the same
-      // team stays up and guesses again rather than losing the round to it.
-      const keepTurn = record.outcome === "duplicate";
+      // Neither naming something already taken nor typing a fragment that fits
+      // several entries should cost the round. The same team stays up and
+      // guesses again; only the clock keeps running.
+      const keepTurn = record.outcome === "duplicate" || record.outcome === "ambiguous";
 
       return {
         ...state,
