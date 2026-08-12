@@ -43,7 +43,11 @@ variables, so it deploys as-is: import the repo on Vercel and accept the detecte
 ## The lists
 
 Seventeen, across film, television, music, internet, games, business, geography, architecture and
-sport. The setup screen has a search box that filters them by name, category or description.
+sport. On the setup screen they are grouped into five colour-coded sections - Screen, Music &
+Internet, Games & Sport, World, Business - defined in `src/data/sections.ts`. Lists that are the
+same subject at different depths (IMDb's Top 100 and Top 250) share one card with a size toggle,
+and the picker collapses to a one-line summary once you have chosen, so the rest of setup stays in
+reach. A search box filters by list name, section, category or description.
 Every list is scraped rather than written from memory, and each one carries the source and scrape
 date it came from, shown on the setup screen:
 
@@ -92,6 +96,15 @@ export const myList: GameList = {
 
 Then append it to the `LISTS` array in `src/data/lists.ts`. Nothing else needs to change - the
 setup screen, scoring and end-of-game reveal all read from that array.
+
+Give it a `category` that one of the sections in `src/data/sections.ts` already claims, or add it
+to a section's `categories`. A category no section claims lands in a catch-all "Other" band rather
+than disappearing. Add the optional `series` field to pair it with an existing list on a shared
+card:
+
+```ts
+series: { id: "imdb-movies", name: "IMDb Top Movies", variant: "Top 500" },
+```
 
 `aliases` are alternate spellings that should be accepted (stock tickers, original-language titles,
 state abbreviations). `note` is optional flavour text shown when the entry is claimed. Keep aliases

@@ -16,10 +16,24 @@ export type ListSource = {
   sourcedAt: string;
 };
 
+/**
+ * Lists that are the same subject at different depths - IMDb's Top 100 and Top
+ * 250 - share a series and render as one card with a size toggle. Everywhere
+ * else they stay ordinary independent lists.
+ */
+export type ListSeries = {
+  id: string;
+  /** Card title, standing in for the individual list names. */
+  name: string;
+  /** Label for this variant's toggle button. */
+  variant: string;
+};
+
 export type GameList = {
   id: string;
   name: string;
   category: string;
+  series?: ListSeries;
   /** One-line explanation of what the ordering means. */
   blurb: string;
   /** Shown in setup when the ordering is a point-in-time snapshot rather than a fixed fact. */

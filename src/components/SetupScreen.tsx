@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { LISTS, getList } from "@/data/lists";
+import { sectionFor, toBands } from "@/data/sections";
 import { DEFAULT_SETTINGS } from "@/lib/game";
-import type { GameSettings, ScoringMode, TeamId } from "@/lib/types";
+import type { GameList, GameSettings, ScoringMode, TeamId } from "@/lib/types";
 
 const TIMER_OPTIONS: { label: string; value: number | null }[] = [
   { label: "No timer", value: null },
@@ -31,16 +32,35 @@ const SCORING_OPTIONS: { mode: ScoringMode; title: string; desc: string }[] = [
 export default function SetupScreen({ onStart }: { onStart: (settings: GameSettings) => void }) {
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   const [query, setQuery] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(true);
   const selectedList = getList(settings.listId);
+  const selectedSection = sectionFor(selectedList);
 
   const needle = query.trim().toLowerCase();
-  const visibleLists = needle
-    ? LISTS.filter((list) =>
-        [list.name, list.category, list.blurb].some((field) =>
-          field.toLowerCase().includes(needle),
-        ),
-      )
-    : LISTS;
+  const visibleLists = useMemo(
+    () =>
+      needle
+        ? LISTS.filter((list) =>
+            [
+              list.name,
+              list.series?.name ?? "",
+              list.category,
+              // Section names are on screen now, so they are worth typing.
+              sectionFor(list).name,
+              list.blurb,
+            ].some((field) => field.toLowerCase().includes(needle)),
+          )
+        : LISTS,
+    [needle],
+  );
+
+  // Bands of cards, dropping any section the current search emptied out.
+  const bands = useMemo(() => toBands(visibleLists), [visibleLists]);
+
+  const choose = (list: GameList) => {
+    setSettings((s) => ({ ...s, listId: list.id }));
+    setPickerOpen(false);
+  };
 
   const setTeamName = (team: TeamId, value: string) =>
     setSettings((s) => ({ ...s, teamNames: { ...s.teamNames, [team]: value } }));
@@ -65,54 +85,119 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
       </p>
 
       <section className="panel">
-        <div className="spread" style={{ marginBottom: 14 }}>
+        <div className="spread" style={{ marginBottom: pickerOpen ? 18 : 0 }}>
           <h2 style={{ margin: 0 }}>1. Pick a list</h2>
-          <div className="search">
-            <input
-              className="text-input"
-              type="search"
-              value={query}
-              placeholder={`Search ${LISTS.length} lists...`}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search lists"
-            />
-            {needle ? (
-              <span className="search-count">
-                {visibleLists.length} of {LISTS.length}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <div className="list-grid">
-          {visibleLists.map((list) => (
-            <button
-              key={list.id}
-              type="button"
-              className="list-card"
-              aria-pressed={list.id === settings.listId}
-              onClick={() => setSettings((s) => ({ ...s, listId: list.id }))}
-            >
-              <div className="cat">{list.category}</div>
-              <div className="title">{list.name}</div>
-              <p className="blurb">{list.blurb}</p>
-              <div className="count">{list.items.length} entries</div>
+          {pickerOpen ? (
+            <div className="search">
+              <input
+                className="text-input"
+                type="search"
+                value={query}
+                placeholder={`Search ${LISTS.length} lists...`}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search lists"
+                autoFocus
+              />
+              {needle ? (
+                <span className="search-count">
+                  {visibleLists.length} of {LISTS.length}
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <button type="button" className="btn" onClick={() => setPickerOpen(true)}>
+              Change list
             </button>
-          ))}
+          )}
         </div>
-        {visibleLists.length === 0 ? (
-          <p className="hint">
-            Nothing matches &ldquo;{query.trim()}&rdquo;. Try a category like film, music, sport or
-            geography.
-          </p>
+
+        {pickerOpen ? (
+          <>
+            {bands.map(({ section, cards }) => (
+              <div
+                key={section.id}
+                className="band"
+                style={{ ["--accent" as string]: section.accent }}
+              >
+                <div className="band-head">
+                  <span className="band-name">{section.name}</span>
+                  <span className="band-count">{cards.length}</span>
+                </div>
+                <div className="list-grid">
+                  {cards.map((card) => {
+                    const active = card.variants.find((v) => v.id === settings.listId);
+                    const shown = active ?? card.variants[0];
+                    return (
+                      <div
+                        key={card.key}
+                        className={`list-card${active ? " selected" : ""}`}
+                        onClick={() => choose(shown)}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={Boolean(active)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            choose(shown);
+                          }
+                        }}
+                      >
+                        <div className="cat">{shown.category}</div>
+                        <div className="title">{card.name}</div>
+                        <p className="blurb">{shown.blurb}</p>
+                        {card.variants.length > 1 ? (
+                          <div className="variants" onClick={(e) => e.stopPropagation()}>
+                            {card.variants.map((variant) => (
+                              <button
+                                key={variant.id}
+                                type="button"
+                                className="variant"
+                                aria-pressed={variant.id === settings.listId}
+                                onClick={() => choose(variant)}
+                              >
+                                {variant.series?.variant ?? variant.name}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="count">{shown.items.length} entries</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {bands.length === 0 ? (
+              <p className="hint">
+                Nothing matches &ldquo;{query.trim()}&rdquo;. Try a section like screen, music,
+                games, world or business.
+              </p>
+            ) : null}
+          </>
         ) : null}
-        {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
-        <p className="hint">
-          Source:{" "}
-          <a href={selectedList.source.url} target="_blank" rel="noreferrer noopener">
-            {selectedList.source.name}
-          </a>
-          , scraped {selectedList.source.sourcedAt}.
-        </p>
+
+        <div className={`chosen${pickerOpen ? " chosen-inline" : ""}`}>
+          <div
+            className="chosen-bar"
+            style={{ ["--accent" as string]: selectedSection.accent }}
+          >
+            <div>
+              <span className="eyebrow">Playing</span>
+              <div className="chosen-name">{selectedList.name}</div>
+            </div>
+            <span className="chosen-count">{selectedList.items.length} entries</span>
+          </div>
+          {selectedList.caveat ? <p className="caveat">{selectedList.caveat}</p> : null}
+          <p className="hint">
+            Source:{" "}
+            <a href={selectedList.source.url} target="_blank" rel="noreferrer noopener">
+              {selectedList.source.name}
+            </a>
+            , scraped {selectedList.source.sourcedAt}.
+          </p>
+        </div>
       </section>
 
       <section className="panel">
@@ -189,7 +274,8 @@ export default function SetupScreen({ onStart }: { onStart: (settings: GameSetti
           Start game
         </button>
         <span className="hint" style={{ margin: 0 }}>
-          Playing {selectedList.name} &middot; {selectedList.items.length} entries
+          {selectedList.name} &middot; {selectedList.items.length} entries &middot;{" "}
+          {settings.turnSeconds ? `${settings.turnSeconds}s per round` : "untimed"}
         </span>
       </div>
     </div>

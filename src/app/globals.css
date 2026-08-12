@@ -209,6 +209,50 @@ h2 {
   white-space: nowrap;
 }
 
+/* ---------- list picker ---------- */
+
+.band + .band {
+  margin-top: 20px;
+}
+
+.band-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+  padding-left: 2px;
+}
+
+.band-head::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--accent);
+  flex: none;
+}
+
+.band-name {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text);
+}
+
+.band-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.band-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
+}
+
 .list-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -216,21 +260,31 @@ h2 {
 }
 
 .list-card {
+  position: relative;
   text-align: left;
   background: #101838;
   border: 1px solid var(--line);
+  border-left: 3px solid var(--accent, var(--line));
   border-radius: 12px;
-  padding: 14px;
+  padding: 13px 14px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .list-card:hover {
   border-color: #4c5da8;
+  border-left-color: var(--accent, #4c5da8);
+  background: #141e42;
 }
 
-.list-card[aria-pressed="true"] {
+.list-card:focus-visible {
+  outline: 2px solid #5b83ff;
+  outline-offset: 2px;
+}
+
+.list-card.selected {
   border-color: #5b83ff;
+  border-left-color: var(--accent, #5b83ff);
   background: #1a2450;
   box-shadow: 0 0 0 2px rgba(91, 131, 255, 0.28);
 }
@@ -241,6 +295,69 @@ h2 {
   letter-spacing: 0.12em;
   color: var(--muted);
   font-weight: 700;
+}
+
+.variants {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.variant {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: #0d1430;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.variant:hover {
+  border-color: #4c5da8;
+}
+
+.variant[aria-pressed="true"] {
+  border-color: var(--accent, #5b83ff);
+  background: #24336f;
+  color: var(--text);
+}
+
+/* ---------- chosen-list summary ---------- */
+
+.chosen-inline {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.chosen-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #101838;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px 15px;
+}
+
+.chosen-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+
+.chosen-count {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .list-card .title {

@@ -5,6 +5,7 @@ export const imdbTvTop100: GameList = {
   name: "IMDb Top 100 TV Shows",
   category: "Television",
   blurb: "The first 100 of IMDb's user-rated Top 250 TV shows.",
+  series: { id: "imdb-tv", name: "IMDb Top TV Shows", variant: "Top 100" },
   caveat: "IMDb re-ranks continuously, so these positions are a snapshot taken on the date below.",
   source: {
     name: "IMDb Top 250 TV Shows",

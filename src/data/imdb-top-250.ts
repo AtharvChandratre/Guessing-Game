@@ -5,6 +5,7 @@ export const imdbTop250: GameList = {
   name: "IMDb Top 250 Movies",
   category: "Film",
   blurb: "The full IMDb Top 250. Deep cuts near #250 are worth the most points.",
+  series: { id: "imdb-movies", name: "IMDb Top Movies", variant: "Top 250" },
   caveat: "IMDb re-ranks continuously, so these positions are a snapshot taken on the date below.",
   source: {
     name: "IMDb Top 250",
